@@ -1,0 +1,44 @@
+import React, { useState, useEffect } from "react"; import { MapContainer, TileLayer, Marker } from "react-leaflet"; import "leaflet/dist/leaflet.css";
+
+// Simple avatar component const Avatar = ({ xp }) => { let gear = "👕🩲"; // underwear + shirt if (xp >= 50) gear = "👖👕🩲"; // pants if (xp >= 100) gear = "👟👖👕🩲"; // shoes if (xp >= 200) gear = "🧥👟👖👕🩲"; // jacket return <div style={{ fontSize: "2rem" }}>{gear}</div>; };
+
+function App() { const [position, setPosition] = useState([51.505, -0.09]); const [xp, setXp] = useState(0); const [gold, setGold] = useState(0); const [journal, setJournal] = useState([]); const [chests, setChests] = useState([]);
+
+// Simulate GPS location (for test) useEffect(() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition((pos) => { setPosition([pos.coords.latitude, pos.coords.longitude]); }); } }, []);
+
+// Spawn random chests near position useEffect(() => { const newChests = []; for (let i = 0; i < 5; i++) { newChests.push([ position[0] + (Math.random() - 0.5) * 0.01, position[1] + (Math.random() - 0.5) * 0.01, ]); } setChests(newChests); }, [position]);
+
+const completeQuest = (i) => { setXp(xp + 20); setGold(gold + 10); setJournal([...journal, Completed quest at chest #${i + 1}]); setChests(chests.filter((_, index) => index !== i)); };
+
+return ( <div style={{ padding: "10px" }}> <h1>LevelUp Life</h1> <Avatar xp={xp} /> <p>XP: {xp} | Gold: {gold}</p>
+
+<h2>Map</h2>
+  <MapContainer center={position} zoom={15} style={{ height: "300px" }}>
+    <TileLayer
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      attribution="&copy; OpenStreetMap contributors"
+    />
+    <Marker position={position}></Marker>
+    {chests.map((chest, i) => (
+      <Marker
+        key={i}
+        position={chest}
+        eventHandlers={{
+          click: () => completeQuest(i),
+        }}
+      ></Marker>
+    ))}
+  </MapContainer>
+
+  <h2>Journal</h2>
+  <ul>
+    {journal.map((entry, i) => (
+      <li key={i}>{entry}</li>
+    ))}
+  </ul>
+</div>
+
+); }
+
+export default App;
+
